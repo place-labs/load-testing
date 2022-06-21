@@ -9,6 +9,7 @@ enum Mode
 end
 
 place_domain = ""
+place_host = ""
 api_key = ""
 load = 5
 mode = Mode::Read | Mode::Write
@@ -18,7 +19,8 @@ OptionParser.parse do |parser|
   parser.banner = "Usage: #{PROGRAM_NAME} [arguments]"
 
   parser.on("-u URI", "--uri=URI", "the domain we are going to hit") do |domain|
-    place_domain = URI.parse(domain).hostname.not_nil!
+    place_host = URI.parse(domain).hostname.not_nil!
+    place_domain = "https://#{place_host}"
   end
 
   parser.on("-a APIKEY", "--apikey=APIKEY", "the api key to use for the requests") do |key|
@@ -93,7 +95,7 @@ metadata = {
 
 users = PlaceOS::Client.new(
   place_domain,
-  host_header: place_domain,
+  host_header: place_host,
   insecure: true,
   x_api_key: api_key
 ).users.search(limit: 10_000)
@@ -108,7 +110,7 @@ Signal::INT.trap do |signal|
 end
 
 if mode.read?
-  readers = Channel(Nil).new(load)
+  readers = Channel(Nil).new(load * 3)
 
   finished.send nil
   spawn do
@@ -121,19 +123,20 @@ if mode.read?
         begin
           client = PlaceOS::Client.new(
             place_domain,
-            host_header: place_domain,
+            host_header: place_host,
             insecure: true,
             x_api_key: api_key
           )
           # hit auth
-          client.authority.fetch
-
+          STDOUT.print "."
+          HTTP::Client.get("#{place_domain}/auth/authority", headers: HTTP::Headers{
+            "X-API-Key" => api_key,
+          })
+          STDOUT.print "~"
           # hit metadata
-          user = users.sample
-          metadata_name = metadata.keys.sample
-          client.metadata.fetch(user.id, metadata_name)
+          client.metadata.fetch(users.sample.id)
         rescue error
-          puts "write error: #{error.message}"
+          STDOUT.print "-"
         ensure
           readers.receive
         end
@@ -157,18 +160,21 @@ if mode.write?
 
       # perform a write operation
       spawn do
+        user = users.sample
+
         begin
-          user = users.sample
+          puts "writing #{user.id}"
+
           metadata_name, metadata_value = metadata.sample
           metadata_value = metadata_value.gsub("%status%", status.sample)
           PlaceOS::Client.new(
             place_domain,
-            host_header: place_domain,
+            host_header: place_host,
             insecure: true,
             x_api_key: api_key
           ).metadata.update(user.id, metadata_name, JSON.parse(metadata_value), "")
         rescue error
-          puts "write error: #{error.message}"
+          puts "write error (#{user.id} -> #{metadata_name}): #{error.message}"
         ensure
           writers.receive
         end

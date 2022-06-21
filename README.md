@@ -16,5 +16,4 @@
 i.e.
 
 ```
-./bin/metadata_load -u "https://placeos.domain.com" -a x-api-key -l 5"
-```
+./bin/metadata_load -u "https://placeos.domain.com" -a x-api-key -l 5"```
