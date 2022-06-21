@@ -1,0 +1,20 @@
+name: load-testing
+version: 1.0.0
+
+dependencies:
+  # PlaceOS API integration
+  placeos:
+    github: placeos/crystal-client
+    branch: master
+
+  connect-proxy:
+    github: spider-gazelle/connect-proxy
+
+development_dependencies:
+  ameba:
+    github: veelenga/ameba
+
+# compile target
+targets:
+  metadata_load:
+    main: src/metadata_load.cr
