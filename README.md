@@ -1,40 +1,20 @@
-# PWC ME Desk Import
+# Load Testing
 
 ## Usage
 
 1. `shards build`
-2. `./bin/import_bookings`
-3. `./bin/import_desks`
+2. `./bin/metadata_load`
 
-## Desk Command line switches
+## Command line switches
 
-* `-d https://path_to_TSV`
-* `-u user@name.com`
-* `-p password`
-* `-d https://placeos.domain`
-* `-c abs1234xfndsx` the client app id
-* `-s asdfds345543dfg` the client secret
-
+* `-u "https://placeos.domain.com"`
+* `-a x-api-key`
+* `-l 10` number of concurrent requests to be running - defaults to 5
+* `-m read_write` read, write, read_write - defaults to read_write
+* `-h` help
 
 i.e.
 
 ```
-./bin/import_desks -u support@place.technology -p development -d "https://mysmartoffice-stg.mer.pwc.com" -c "c3c1ebeb60d94dcc96caf5fae12" -s "tvEQghtRLjD0YwbSlls9hiuzGe9Qze4m9cTgn7sn6Ew8g"
-```
-
-## Bookings Command line switches
-
-* `-m calendar-module-id`
-* `-b booking-driver-id`
-* `-u user@name.com`
-* `-p password`
-* `-d https://placeos.domain`
-* `-c abs1234xfndsx` the client app id
-* `-s asdfds345543dfg` the client secret
-
-
-i.e.
-
-```
-./bin/import_bookings -u support@place.technology -p development -d "https://mysmartoffice-stg.mer.pwc.com" -c "c3c1ebeb60d94dcc96caf5fae12" -s "tvEQghtRLjD0YwbSlls9hiuzGe9Qze4m9cTgn7sn6Ew8g" -m "mod-FSqCVJUOP48" -b "driver-FTIqL3xTyeD"
+./bin/metadata_load -u "https://placeos.domain.com" -a x-api-key -l 5"
 ```
